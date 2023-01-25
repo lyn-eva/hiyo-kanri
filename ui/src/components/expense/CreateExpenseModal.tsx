@@ -1,12 +1,13 @@
-'use client'
 import { EXPENSE } from '../types'
-import { Dispatch, SetStateAction, useReducer } from 'react'
+import { Dispatch, SetStateAction, useCallback, useReducer } from 'react'
 import { createPortal } from 'react-dom'
 import { useMutation, useQueryClient } from 'react-query'
 import { createExpenseFn } from '.'
+import { AnimatePresence, motion } from 'framer-motion'
+import CreatableCombo from '../util/CreatableCombo'
+import { setHour } from '../../util'
 
 const reducerFunc = (state: T, { type, payload }: A) => {
-	console.log(payload)
 	switch (type) {
 		case 'NAME':
 			return { ...state, name: { value: payload.value, error: payload.error } }
@@ -20,66 +21,85 @@ const reducerFunc = (state: T, { type, payload }: A) => {
 const defaultForm = { name: { value: '', error: '' }, amount: { value: '', error: '' } }
 
 export default function CreateExpenseModal(props: Props) {
-	const { open, setOpen } = props
+	const { open, setOpen, date, isToday } = props
 	const [{ name, amount }, dispatch] = useReducer(reducerFunc, defaultForm)
 
 	const uqc = useQueryClient()
 
 	const { mutateAsync: createExpense } = useMutation(createExpenseFn, {
 		onSuccess: async (expense) => {
-			uqc.setQueryData<EXPENSE[]>('expenses', (expenses) => [...(expenses ?? []), expense])
+			uqc.setQueriesData<EXPENSE[]>(['expenses'], (expenses) => [...(expenses ?? []), expense])
 			setOpen(false)
 		},
 	})
 
 	const handleCreateExpense = async () => {
+		console.log('error', !name.value)
 		if (!name.value) return dispatch({ type: 'NAME', payload: { value: '', error: 'Name must not be empty' } })
 		// prettier-ignore
 		if (Number(amount.value) < 0) return dispatch({ type: 'AMOUNT', payload: { value: amount.value, error: 'Amount must not be a negative number' } })
 		if (amount.value === '')
 			return dispatch({ type: 'AMOUNT', payload: { value: '', error: 'Amount must not be empty' } })
-		await createExpense({ amount: +amount.value, name: name.value, tags: [] })
+		await createExpense({
+			amount: +amount.value,
+			name: name.value,
+			createdAt: isToday ? undefined : setHour(date.getTime(), 23, 59, 59).toISOString(),
+			userId: 'neon',
+		})
 		dispatch({ type: 'RESET', payload: { value: '' } })
 	}
 
-	if (!open || !document) return null
-
 	return createPortal(
-		<div
-			onClick={() => setOpen(false)}
-			className='fixed top-0 right-0 grid h-screen w-full place-items-center bg-emerald-100 bg-opacity-50'
-		>
-			<div onClick={(e) => e.stopPropagation()} className='expand-animation w-10/12 rounded-md bg-white p-6 shadow-md'>
-				<h2 className='mb-3 text-center text-xl font-medium'>Create a new expense</h2>
-				<div className='mb-3'>
-					<label className='text-sm text-gray-800'>Name</label>
-					<input
-						value={name.value}
-						onChange={(e) => dispatch({ type: 'NAME', payload: { value: e.target.value } })}
-						placeholder='Item name'
-						className='w-full bg-slate-100 px-2 py-1 outline-none'
-					/>
-					<span className='text-sm text-red-500'>{name.error}</span>
-				</div>
-				<div className='mb-3'>
-					<label className='text-sm text-gray-800'>Amount</label>
-					<input
-						value={amount.value}
-						type='number'
-						onChange={(e) => dispatch({ type: 'AMOUNT', payload: { value: e.target.value } })}
-						placeholder='Item cost'
-						className='w-full bg-slate-100 px-2 py-1 outline-none'
-					/>
-					<span className='text-sm text-red-500'>{amount.error}</span>
-				</div>
-				<button
-					onClick={handleCreateExpense}
-					className='mt-8 w-full rounded-md bg-emerald-500 py-1 text-center font-medium duration-300 active:scale-95'
+		<AnimatePresence>
+			{open && (
+				<motion.div
+					onClick={() => setOpen(false)}
+					className='fixed top-0 right-0 grid h-screen w-full place-items-center bg-emerald-100 bg-opacity-50'
+					exit={{ opacity: 0 }}
 				>
-					Add Expense
-				</button>
-			</div>
-		</div>,
+					<motion.div
+						onClick={(e) => e.stopPropagation()}
+						className='expand-animation w-11/12 max-w-[36rem] rounded-md bg-white p-5 shadow-md'
+						initial={{ scale: 0.9 }}
+						animate={{ scale: 1 }}
+						exit={{ opacity: 0, scale: 0.9 }}
+					>
+						<h2 className='mb-3 text-center text-xl font-medium'>Create a new expense</h2>
+						<div className='mb-3'>
+							<label className='text-sm text-gray-800'>Name</label>
+							<input
+								value={name.value}
+								onChange={(e) => dispatch({ type: 'NAME', payload: { value: e.target.value } })}
+								placeholder='Item name'
+								className='me-inputbox'
+							/>
+							<span className='text-sm text-red-500'>{name.error}</span>
+						</div>
+						<div className='mb-3'>
+							<label className='text-sm text-gray-800'>Amount</label>
+							<input
+								value={amount.value}
+								onChange={(e) => dispatch({ type: 'AMOUNT', payload: { value: e.target.value } })}
+								placeholder='Item cost'
+								className='me-inputbox'
+								type='number'
+							/>
+							<span className='text-sm text-red-500'>{amount.error}</span>
+						</div>
+						<div>
+							<label className='text-sm text-gray-800'>Tags</label>
+							<CreatableCombo id='tag-input' />
+						</div>
+						<button
+							onClick={handleCreateExpense}
+							className='mt-8 w-full rounded-md bg-emerald-500 py-1 text-center font-medium duration-300 active:scale-95'
+						>
+							Add Expense {isToday ? '' : `for ${date.toLocaleDateString()}`}
+						</button>
+					</motion.div>
+				</motion.div>
+			)}
+		</AnimatePresence>,
 		document.body
 	)
 }
@@ -87,6 +107,8 @@ export default function CreateExpenseModal(props: Props) {
 interface Props {
 	open: boolean
 	setOpen: Dispatch<SetStateAction<boolean>>
+	date: Date
+	isToday: boolean
 }
 
 interface T {

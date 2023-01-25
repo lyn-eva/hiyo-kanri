@@ -15,8 +15,8 @@ export default function Expense() {
 	const [query, setQuery] = useSearchParams()
 	const today = useMemo(() => new Date(new Date().setHours(0, 0, 0, 0)), [])
 	const [date, setDate] = useState(initDate(query.get('from')) || today)
-	const isToday = useMemo(() => date.getTime() === today.getTime(), [])
-	const [open, setOpen] = useState(false)
+	const isToday = useMemo(() => date.getTime() === today.getTime(), [date])
+	const [open, setOpen] = useState(true)
 	const location = useLocation()
 
 	const { data: expenses, isLoading, isSuccess } = useQuery<EXPENSE[]>(['expenses', location.search], getExpensesFn)
@@ -26,7 +26,6 @@ export default function Expense() {
 		const d = new Date().toLocaleDateString()
 		setQuery({ from: d, to: d })
 	}, [])
-	console.log(date.getTime() === today.getTime())
 
 	const handleDatePick = (value: Date) => {
 		setDate(value)
@@ -39,7 +38,7 @@ export default function Expense() {
 			<div className='mx-auto w-11/12 pt-2'>
 				<header className='flex justify-between py-1'>
 					<h1 className='text-xl font-medium'>
-						<span className='px-2 bg-emerald-400'>{isToday ? 'Today' : date.toLocaleDateString()}</span>&apos;s Expenses
+						<span className='px-2 bg-emerald-400'>{isToday ? 'Today' : date.toLocaleDateString()}</span>&apos;s expenses
 					</h1>
 					<DatePicker {...{ date, setDate }} onClick={handleDatePick} />
 				</header>
@@ -78,7 +77,7 @@ export default function Expense() {
 					</button>
 				</div>
 			</div>
-			<CreateExpenseItem {...{ open, setOpen }} />
+			<CreateExpenseItem {...{ open, setOpen, date, isToday }} />
 		</section>
 	)
 }

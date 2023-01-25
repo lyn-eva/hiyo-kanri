@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+	.me-inputbox {
+		@apply w-full bg-slate-100 px-2 py-1 outline-none;
+	}
+}
+
 /* me */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -38,13 +44,15 @@ input[type='number'] {
 }
 
 .react-calendar {
-	/* font-family: '__Nunito_b91d35', '__Nunito_Fallback_b91d35' !important; */
-	/* font-style: normal; */
 	margin-top: 1rem;
-	padding: 0.5rem;
+	padding: 0.2rem;
 	padding-top: 0;
 }
 
 .react-calendar__tile--active {
 	background-color: #006edc;
+}
+
+.react-date-picker__calendar {
+	width: min(350px, 91.5vw);
 }

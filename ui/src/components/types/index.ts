@@ -5,6 +5,7 @@ export interface EXPENSE {
 	name: string
 	tags: number[]
 	amount: Decimal
-	createdAt: Date
+	createdAt: string
 	updatedAt: Date
+	userId: string
 }

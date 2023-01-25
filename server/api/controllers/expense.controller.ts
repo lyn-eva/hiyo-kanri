@@ -20,8 +20,12 @@ export const getExpenses: Handler = async (req, res) => {
 }
 
 export const createExpense: Handler = async (req, res) => {
-	const expense = await ExpenseTB.create({ data: req.body })
-	res.json(expense).end()
+	try {
+		const expense = await ExpenseTB.create({ data: req.body })
+		res.json(expense).end()
+	} catch (e) {
+		return res.status(400).end()
+	}
 }
 
 export const updateExpense: Handler = async (req, res) => {

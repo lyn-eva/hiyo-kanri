@@ -11,7 +11,13 @@ export const getExpensesFn = async (q: QueryFunctionContext<QueryKey, string>) =
 		.then((res) => res.expenses)
 }
 
-export const createExpenseFn = (body: { name: string; amount: number; tags: string[] }) =>
+export const createExpenseFn = (body: {
+	name: string
+	amount: number
+	tags?: string[]
+	createdAt?: string
+	userId: string
+}) =>
 	fetch(`${server_url}/expense`, {
 		body: JSON.stringify(body),
 		method: 'POST',
