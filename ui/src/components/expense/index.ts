@@ -23,3 +23,20 @@ export const createExpenseFn = (body: {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 	}).then((res) => res.json())
+
+// export const getSettingFn = ({userId: string, type: 'EXPENSE_TAG'| 'TWO'}) => {
+
+// }
+
+// model Setting {
+//   id        String      @id @default(cuid())
+//   type      SettingType
+//   User      User        @relation(fields: [userId], references: [id])
+//   userId    String
+//   createdAt DateTime    @default(now()) @map(name: "created_at")
+//   updatedAt DateTime    @updatedAt @map(name: "updated_at")
+// }
+
+// enum SettingType {
+//   EXPENSE_TAG
+// }

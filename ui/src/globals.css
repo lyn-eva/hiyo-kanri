@@ -49,10 +49,15 @@ input[type='number'] {
 	padding-top: 0;
 }
 
-.react-calendar__tile--active {
-	background-color: #006edc;
-}
-
 .react-date-picker__calendar {
 	width: min(350px, 91.5vw);
+}
+
+.react-calendar__tile--now {
+	background-color: #ffff76;
+	color: #000;
+}
+
+.react-calendar__tile--active {
+	background-color: #006edc;
 }

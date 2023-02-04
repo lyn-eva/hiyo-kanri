@@ -1,11 +1,12 @@
 import { EXPENSE } from '../types'
-import { Dispatch, SetStateAction, useCallback, useReducer } from 'react'
+import { Dispatch, SetStateAction, useReducer } from 'react'
 import { createPortal } from 'react-dom'
 import { useMutation, useQueryClient } from 'react-query'
 import { createExpenseFn } from '.'
 import { AnimatePresence, motion } from 'framer-motion'
 import CreatableCombo from '../util/CreatableCombo'
 import { setHour } from '../../util'
+import LoadingCircle from '../util/LoadingCircle'
 
 const reducerFunc = (state: T, { type, payload }: A) => {
 	switch (type) {
@@ -26,7 +27,7 @@ export default function CreateExpenseModal(props: Props) {
 
 	const uqc = useQueryClient()
 
-	const { mutateAsync: createExpense } = useMutation(createExpenseFn, {
+	const { mutateAsync: createExpense, isLoading } = useMutation(createExpenseFn, {
 		onSuccess: async (expense) => {
 			uqc.setQueriesData<EXPENSE[]>(['expenses'], (expenses) => [...(expenses ?? []), expense])
 			setOpen(false)
@@ -34,7 +35,6 @@ export default function CreateExpenseModal(props: Props) {
 	})
 
 	const handleCreateExpense = async () => {
-		console.log('error', !name.value)
 		if (!name.value) return dispatch({ type: 'NAME', payload: { value: '', error: 'Name must not be empty' } })
 		// prettier-ignore
 		if (Number(amount.value) < 0) return dispatch({ type: 'AMOUNT', payload: { value: amount.value, error: 'Amount must not be a negative number' } })
@@ -92,9 +92,9 @@ export default function CreateExpenseModal(props: Props) {
 						</div>
 						<button
 							onClick={handleCreateExpense}
-							className='mt-8 w-full rounded-md bg-emerald-500 py-1 text-center font-medium duration-300 active:scale-95'
+							className='mt-8 w-full rounded-md bg-emerald-500 py-[6px] text-center font-medium duration-300 active:scale-95'
 						>
-							Add Expense {isToday ? '' : `for ${date.toLocaleDateString()}`}
+							{isLoading ? <LoadingCircle /> : `Add Expense ${isToday ? '' : `for ${date.toLocaleDateString()}`}`}
 						</button>
 					</motion.div>
 				</motion.div>

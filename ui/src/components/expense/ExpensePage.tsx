@@ -1,5 +1,5 @@
 'use client'
-import { useQuery } from 'react-query'
+// import { useQuery } from 'react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 
@@ -8,6 +8,17 @@ import { DatePicker } from '../util'
 import CreateExpenseItem from './CreateExpenseModal'
 import LoadingCircle from '../util/LoadingCircle'
 import { getExpensesFn } from '.'
+import { gql, useQuery } from '@apollo/client'
+
+const EXPENSES_GQL = gql`
+	query Query {
+		expenses {
+			id
+			name
+			amount
+		}
+	}
+`
 
 const initDate = (d: string | null) => d && new Date(new Date(d).setHours(0, 0, 0, 0))
 
@@ -19,7 +30,8 @@ export default function Expense() {
 	const [open, setOpen] = useState(true)
 	const location = useLocation()
 
-	const { data: expenses, isLoading, isSuccess } = useQuery<EXPENSE[]>(['expenses', location.search], getExpensesFn)
+	// const { data: expenses, isLoading, isSuccess } = useQuery<EXPENSE[]>(['expenses', location.search], getExpensesFn)
+	const { data: { expenses } = {}, loading } = useQuery<{ expenses: EXPENSE[] }>(EXPENSES_GQL)
 
 	useEffect(() => {
 		if (Date.parse(query.get('from') as string) && Date.parse(query.get('to') as string)) return
@@ -47,20 +59,20 @@ export default function Expense() {
 						<div className='grow'>Name</div>
 						<div className=''>Price</div>
 					</li>
-					{isLoading ? (
+					{/* {isLoading ? (
 						<LoadingCircle className='my-6' />
 					) : !isLoading && !isSuccess ? (
 						<p className='text-center my-6'>Something went wrong!</p>
 					) : !expenses?.length ? (
 						<p className='text-center my-6'>No expenses :)</p>
-					) : (
-						expenses.map(({ name, amount, id }) => (
-							<li key={id} className='flex border-b-[1px] px-2 py-1 hover:bg-slate-50 duration-200 active:scale-[98%]'>
-								<div className='grow'>{name}</div>
-								<div className=''>{(+amount).toLocaleString()}</div>
-							</li>
-						))
-					)}
+					) : ( */}
+					{expenses?.map(({ name, amount, id }) => (
+						<li key={id} className='flex border-b-[1px] px-2 py-1 hover:bg-slate-50 duration-200 active:scale-[98%]'>
+							<div className='grow'>{name}</div>
+							<div className=''>{(+amount).toLocaleString()}</div>
+						</li>
+					))}
+					{/* )} */}
 					<li className='flex bg-slate-200 py-1 px-2 font-medium'>
 						<div className=''>Count = {expenses?.length.toLocaleString()}</div>
 						<div className='grow'></div>
